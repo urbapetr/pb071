@@ -1,11 +1,11 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdbool.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void coder(unsigned long long int w);
+void coder(unsigned long long int x);
 bool encode(void)
 {
     int ch;
