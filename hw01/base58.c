@@ -9,7 +9,7 @@ void coder(unsigned long long int w);
 bool encode(void)
 {
     int ch;
-    unsigned long long int w;
+    unsigned long long int w = 0;
     unsigned int i = 0;
     while ((ch = getchar()) != EOF) {
         w = (w << 8) | ch;
@@ -33,8 +33,8 @@ bool encode(void)
 
 void coder(unsigned long long int x)
 {
-    unsigned int a;
-    unsigned long long int y;
+    unsigned int a = 0;
+    unsigned long long int y = 0;
     unsigned int character;
     int p = 0;
     while (x != 0) {
