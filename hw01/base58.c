@@ -39,25 +39,18 @@ void coder(unsigned long long int x)
     int p = 0;
     while (x != 0) {
         a = x % 58;
-        switch (a) {
-        case 1 ... 9:
+        if (1 <= a && a <= 9) {
             a = a + 49;
-            break;
-        case 10 ... 15:
+        } else if (10 <= a && a <= 15) {
             a = a + 56;
-            break;
-        case 16 ... 20:
+        } else if (16 <= a && a <= 20) {
             a = a + 57;
-            break;
-        case 21 ... 32:
+        } else if (21 <= a && a <= 32) {
             a = a + 58;
-            break;
-        case 33 ... 43:
+        } else if (33 <= a && a <= 43) {
             a = a + 64;
-            break;
-        default:
+        } else {
             a = a + 65;
-            break;
         }
         x = x / 58;
         y = (y << 8) | a;
@@ -81,25 +74,18 @@ bool decode(void)
     while ((ch = getchar()) != EOF) {
         if (isspace(ch))
             continue;
-        switch (ch) {
-        case 49 ... 57:
+        if (49 <= ch && ch <= 57) {
             ch = ch - 49;
-            break;
-        case 65 ... 72:
+        } else if (65 <= ch && ch <= 72) {
             ch = ch - 56;
-            break;
-        case 74 ... 78:
+        } else if (74 <= ch && ch <= 78) {
             ch = ch - 57;
-            break;
-        case 80 ... 90:
+        } else if (80 <= ch && ch <= 90) {
             ch = ch - 58;
-            break;
-        case 97 ... 107:
+        } else if (97 <= ch && ch <= 107) {
             ch = ch - 64;
-            break;
-        default:
+        } else {
             ch = ch - 65;
-            break;
         }
         w = (w * 58) + ch;
         i--;
@@ -119,7 +105,6 @@ bool decode(void)
         w = 0;
         i = 6;
     }
-    printf("\n");
     if (i != 6)
         return false;
     return true;
