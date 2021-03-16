@@ -57,8 +57,45 @@ void coder(unsigned long long int x){
 
 bool decode(void)
 {
-    // TODO: implement simplified Base58 decode
-    return false;
+    int ch;
+    unsigned long long int w = 0;
+    unsigned int i = 6;
+    unsigned int character;
+    int my_list[4];
+    int y = 3;
+    int x = 0;
+    while ((ch=getchar()) != EOF){
+        if (isspace(ch)) continue;
+        switch(ch){
+            case 49 ... 57: ch = ch - 49; break;
+            case 65 ... 72: ch = ch - 56; break;
+            case 74 ... 78: ch = ch - 57; break;
+            case 80 ... 90: ch = ch - 58; break;
+            case 97 ... 107: ch = ch - 64; break;
+            default: ch = ch - 65; break;
+        }
+        w = (w * 58) + ch;
+        i--;
+        if (i != 0){
+            continue;
+        }
+        for (x = 0; x < 4; x++){
+            character = w & 0xFF;
+            w = w >> 8;
+            my_list[x] = character;
+        }
+        while (y >= 0){
+            putchar(my_list[y]);
+            y--;
+        }
+        y = 3;
+        w = 0;
+        i = 6;
+    }
+    printf("\n");
+    if (i != 6) 
+        return false;
+    return true;
 }
 
 // ================================
