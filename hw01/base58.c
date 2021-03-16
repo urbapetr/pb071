@@ -4,13 +4,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+
 void coder(unsigned long long int w);
 bool encode(void)
 {
     int ch;
     unsigned long long int w;
     unsigned int i = 0;
-    while ((ch=getchar()) != EOF){
+    while ((ch = getchar()) != EOF){
         w = (w << 8) | ch;
         i++;
         if (i != 4)
@@ -30,7 +31,8 @@ bool encode(void)
     return true;
 }
 
-void coder(unsigned long long int x){
+void coder(unsigned long long int x)
+{
     unsigned int a;
     unsigned long long int y;
     unsigned int character;
@@ -64,7 +66,7 @@ bool decode(void)
     int my_list[4];
     int y = 3;
     int x = 0;
-    while ((ch=getchar()) != EOF){
+    while ((ch = getchar()) != EOF){
         if (isspace(ch)) continue;
         switch(ch){
             case 49 ... 57: ch = ch - 49; break;
