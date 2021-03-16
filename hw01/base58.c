@@ -37,15 +37,15 @@ void coder(unsigned long long int x)
     unsigned long long int y = 0;
     unsigned int character;
     int p = 0;
-    while (x != 0) {
+    for (int i = 0; i < 6; i++) {
         a = x % 58;
-        if (1 <= a && a <= 9) {
+        if (a <= 8) {
             a = a + 49;
-        } else if (10 <= a && a <= 15) {
+        } else if (9 <= a && a <= 16) {
             a = a + 56;
-        } else if (16 <= a && a <= 20) {
+        } else if (17 <= a && a <= 21) {
             a = a + 57;
-        } else if (21 <= a && a <= 32) {
+        } else if (22 <= a && a <= 32) {
             a = a + 58;
         } else if (33 <= a && a <= 43) {
             a = a + 64;
