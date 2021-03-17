@@ -5,107 +5,107 @@
 #include <stdlib.h>
 #include <string.h>
 
-void coder(unsigned long long int x);
+void coder(uint64_t combinedChar);
 bool encode(void)
 {
-    int ch;
-    unsigned long long int w = 0;
-    unsigned int i = 0;
-    while ((ch = getchar()) != EOF) {
-        w = (w << 8) | ch;
-        i++;
-        if (i != 4)
+    int8_t character;
+    uint64_t combinedChar = 0;
+    uint8_t counter = 0;
+    while ((character = getchar()) != EOF) {
+        combinedChar = (combinedChar << 8) | character;
+        counter++;
+        if (counter != 4)
             continue;
-        coder(w);
-        i = 0;
-        w = 0;
+        coder(combinedChar);
+        counter = 0;
+        combinedChar = 0;
     }
-    if (i != 0) {
-        while (i != 4) {
-            w = (w << 8) | '\0';
-            i++;
+    if (counter != 0) {
+        while (counter != 4) {
+            combinedChar = (combinedChar << 8) | '\0';
+            counter++;
         }
-        coder(w);
+        coder(combinedChar);
     }
     printf("\n");
     return true;
 }
 
-void coder(unsigned long long int x)
+void coder(uint64_t combinedChar)
 {
-    unsigned int a = 0;
-    unsigned long long int y = 0;
-    unsigned int character;
-    int p = 0;
-    for (int i = 0; i < 6; i++) {
-        a = x % 58;
-        if (a <= 8) {
-            a = a + 49;
-        } else if (9 <= a && a <= 16) {
-            a = a + 56;
-        } else if (17 <= a && a <= 21) {
-            a = a + 57;
-        } else if (22 <= a && a <= 32) {
-            a = a + 58;
-        } else if (33 <= a && a <= 43) {
-            a = a + 64;
+    uint8_t baseChar = 0;
+    uint64_t charSaver = 0;
+    uint8_t character;
+    for (uint8_t i = 0; i < 6; i++) {
+        baseChar = combinedChar % 58;
+        if (baseChar <= 8) {
+            baseChar += 49;
+        } else if (9 <= baseChar && baseChar <= 16) {
+            baseChar += 56;
+        } else if (17 <= baseChar && baseChar <= 21) {
+            baseChar += 57;
+        } else if (22 <= baseChar && baseChar <= 32) {
+            baseChar += 58;
+        } else if (33 <= baseChar && baseChar <= 43) {
+            baseChar += 64;
         } else {
-            a = a + 65;
+            baseChar += 65;
         }
-        x = x / 58;
-        y = (y << 8) | a;
+        combinedChar = combinedChar / 58;
+        charSaver = (charSaver << 8) | baseChar;
     }
-    for (p = 0; p < 6; ++p) {
-        character = y & 0xFF;
+    for (uint8_t counter = 0; counter < 6; ++counter) {
+        character = charSaver & 0xFF;
         putchar(character);
-        y = y >> 8;
+        charSaver = charSaver >> 8;
     }
 }
 
 bool decode(void)
 {
-    int ch;
-    unsigned long long int w = 0;
-    unsigned int i = 6;
-    unsigned int character;
-    int my_list[4];
-    int y = 3;
-    int x = 0;
-    while ((ch = getchar()) != EOF) {
-        if (isspace(ch))
+    int8_t inputChar;
+    uint64_t combinedChar = 0;
+    uint8_t counter = 6;
+    uint8_t character;
+    uint8_t my_list[4];
+    int8_t index = 3;
+    while ((inputChar = getchar()) != EOF) {
+        if (isspace(inputChar))
             continue;
-        if (49 <= ch && ch <= 57) {
-            ch = ch - 49;
-        } else if (65 <= ch && ch <= 72) {
-            ch = ch - 56;
-        } else if (74 <= ch && ch <= 78) {
-            ch = ch - 57;
-        } else if (80 <= ch && ch <= 90) {
-            ch = ch - 58;
-        } else if (97 <= ch && ch <= 107) {
-            ch = ch - 64;
+        if (49 <= inputChar && inputChar <= 57) {
+            inputChar -= 49;
+        } else if (65 <= inputChar && inputChar <= 72) {
+            inputChar -= 56;
+        } else if (74 <= inputChar && inputChar <= 78) {
+            inputChar -= 57;
+        } else if (80 <= inputChar && inputChar <= 90) {
+            inputChar -= 58;
+        } else if (97 <= inputChar && inputChar <= 107) {
+            inputChar -= 64;
+        } else if (109 <= inputChar && inputChar <= 122) {
+            inputChar -= 65;
         } else {
-            ch = ch - 65;
+            return false;
         }
-        w = (w * 58) + ch;
-        i--;
-        if (i != 0) {
+        combinedChar = (combinedChar * 58) + inputChar;
+        counter--;
+        if (counter != 0) {
             continue;
         }
-        for (x = 0; x < 4; x++) {
-            character = w & 0xFF;
-            w = w >> 8;
+        for (uint8_t x = 0; x < 4; x++) {
+            character = combinedChar & 0xFF;
+            combinedChar = combinedChar >> 8;
             my_list[x] = character;
         }
-        while (y >= 0) {
-            putchar(my_list[y]);
-            y--;
+        while (index >= 0) {
+            putchar(my_list[index]);
+            index--;
         }
-        y = 3;
-        w = 0;
-        i = 6;
+        index = 3;
+        combinedChar = 0;
+        counter = 6;
     }
-    if (i != 6)
+    if (counter != 6)
         return false;
     return true;
 }
