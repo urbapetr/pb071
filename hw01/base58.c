@@ -8,7 +8,7 @@
 void coder(uint64_t combinedChar);
 bool encode(void)
 {
-    int8_t character;
+    int16_t character;
     uint64_t combinedChar = 0;
     uint8_t counter = 0;
     while ((character = getchar()) != EOF) {
@@ -35,8 +35,8 @@ void coder(uint64_t combinedChar)
 {
     uint8_t baseChar = 0;
     uint64_t charSaver = 0;
-    uint8_t character;
-    for (uint8_t i = 0; i < 6; i++) {
+    uint16_t character;
+    for (int8_t i = 0; i < 6; i++) {
         baseChar = combinedChar % 58;
         if (baseChar <= 8) {
             baseChar += 49;
@@ -54,7 +54,7 @@ void coder(uint64_t combinedChar)
         combinedChar = combinedChar / 58;
         charSaver = (charSaver << 8) | baseChar;
     }
-    for (uint8_t counter = 0; counter < 6; ++counter) {
+    for (int8_t counter = 0; counter < 6; ++counter) {
         character = charSaver & 0xFF;
         putchar(character);
         charSaver = charSaver >> 8;
@@ -63,11 +63,11 @@ void coder(uint64_t combinedChar)
 
 bool decode(void)
 {
-    int8_t inputChar;
+    int16_t inputChar;
     uint64_t combinedChar = 0;
-    uint8_t counter = 6;
-    uint8_t character;
-    uint8_t my_list[4];
+    int8_t counter = 6;
+    uint16_t character;
+    uint16_t my_list[4];
     int8_t index = 3;
     while ((inputChar = getchar()) != EOF) {
         if (isspace(inputChar))
@@ -92,7 +92,7 @@ bool decode(void)
         if (counter != 0) {
             continue;
         }
-        for (uint8_t x = 0; x < 4; x++) {
+        for (int8_t x = 0; x < 4; x++) {
             character = combinedChar & 0xFF;
             combinedChar = combinedChar >> 8;
             my_list[x] = character;
