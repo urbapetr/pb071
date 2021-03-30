@@ -74,22 +74,22 @@ bool eliminate_box(unsigned int sudoku[9][9], int row_index, int col_index)
     int col_block = which_block(col_index);
     int row_repeat = row_block + 2;
     int col_repeat = col_block + 2;
-    if (is_impossible(sudoku[row_index][col_index])) {
-        printf("[%d][%d] COL: Something went wrong :(\n", row_index, col_index);
-        return 0;
-    }
-    for (int i = row_block; i <= row_repeat; i++) {
-        for (int j = col_block; j <= col_repeat; j++) {
-            if (i == row_index && j == col_index) {
-                continue;
+    for (int x = row_block; x <= row_repeat; x++)
+    {
+        for (int y = col_block; y <= col_repeat; y++)
+        {
+            if (is_impossible(sudoku[x][y])){printf("[%d][%d] COL: Something went wrong :(\n", x,y);return 0;}
+            for (int i = row_block; i <= row_repeat; i++)
+            {
+                for (int j = col_block; j <= col_repeat; j++)
+                {
+                    if (x == i && y == j){continue;}
+                    if (!(is_number(sudoku[i][j]))){continue;}
+                    sudoku[x][y] = sudoku[x][y] ^ (sudoku[x][y] & sudoku[i][j]);
+                }
             }
-            if (!(is_number(sudoku[i][j]))) {
-                continue;
-            }
-            sudoku[row_index][col_index] = sudoku[row_index][col_index] ^ (sudoku[row_index][col_index] & sudoku[i][j]);
         }
     }
-
     return changed;
 }
 
@@ -146,7 +146,7 @@ bool check_number(int row, int collum, unsigned int sudoku[9][9])
             }
             col_block++;
         }
-        col_block = 0;
+        col_block = repeat_col - 2;
         row_block++;
     }
 
@@ -193,7 +193,7 @@ unsigned int possible_number(int row, int collum, unsigned int sudoku[9][9])
             }
             col_block++;
         }
-        col_block = 0;
+        col_block = repeat_col - 2;
         row_block++;
     }
     int result = possible_block & possible_collum & possible_row;
@@ -213,13 +213,15 @@ bool solve(unsigned int sudoku[9][9])
         (eliminate_row(sudoku, i));
         (eliminate_col(sudoku, i));
     }
-    for (int j = 0; j < 9; j++) {
-        for (int k = 0; k < 9; k++) {
-            if (is_number(sudoku[j][k])) {
-                continue;
-            }
-            eliminate_box(sudoku, j, k);
+    int x = 0;
+    int y = 0;
+    while (x <= 6){
+        while (y <= 6){
+            eliminate_box(sudoku, x, y);
+            y +=3;
         }
+        y = 0;
+        x += 3;
     }
     bool solved = false;
     if (!(needs_solving(sudoku))) {
@@ -272,10 +274,10 @@ bool load(unsigned int sudoku[9][9])
 {
     int i = 0;
     int j = 0;
-    int character;
+    int character = 0;
     int row = 0;
     int collum = 0;
-    int new_char;
+    int new_char = 0;
     bool what_load = false;
     while ((character = getchar()) != '\n') {
         if (i == 0 && j == 0 && character == '+') {
@@ -343,10 +345,10 @@ void print(unsigned int sudoku[9][9])
     char *middle = "+-------+-------+-------+\n";
     printf("%s", middle);
     for (int i = 0; i < 9; i++) {
-        printf("| ");
+        printf("|");
         for (int y = 0; y < 9; y++) {
             if (is_number(sudoku[i][y])) {
-                printf("%d ", converter(sudoku[i][y]));
+                printf(" %d", converter(sudoku[i][y]));
             } else if (is_unpredictable(sudoku[i][y])) {
                 printf(". ");
             } else if (is_impossible(sudoku[i][y])) {
@@ -354,7 +356,7 @@ void print(unsigned int sudoku[9][9])
             }
 
             if (y % 3 == 2) {
-                printf("| ");
+                printf(" |");
             }
         }
         printf("\n");
