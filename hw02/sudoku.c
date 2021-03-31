@@ -72,17 +72,20 @@ bool eliminate_box(unsigned int sudoku[9][9], int row_index, int col_index)
     int col_block = which_block(col_index);
     int row_repeat = row_block + 2;
     int col_repeat = col_block + 2;
-    for (int x = row_block; x <= row_repeat; x++)
-    {
-        for (int y = col_block; y <= col_repeat; y++)
-        {
-            if (is_impossible(sudoku[x][y])){printf("[%d][%d] COL: Something went wrong :(\n", x,y);return 0;}
-            for (int i = row_block; i <= row_repeat; i++)
-            {
-                for (int j = col_block; j <= col_repeat; j++)
-                {
-                    if (x == i && y == j){continue;}
-                    if (!(is_number(sudoku[i][j]))){continue;}
+    for (int x = row_block; x <= row_repeat; x++) {
+        for (int y = col_block; y <= col_repeat; y++) {
+            if (is_impossible(sudoku[x][y])) {
+                printf("[%d][%d] COL: Something went wrong :(\n", x, y);
+                return 0;
+            }
+            for (int i = row_block; i <= row_repeat; i++) {
+                for (int j = col_block; j <= col_repeat; j++) {
+                    if (x == i && y == j) {
+                        continue;
+                    }
+                    if (!(is_number(sudoku[i][j]))) {
+                        continue;
+                    }
                     sudoku[x][y] = sudoku[x][y] ^ (sudoku[x][y] & sudoku[i][j]);
                 }
             }
@@ -213,10 +216,10 @@ bool solve(unsigned int sudoku[9][9])
     }
     int x = 0;
     int y = 0;
-    while (x <= 6){
-        while (y <= 6){
+    while (x <= 6) {
+        while (y <= 6) {
             eliminate_box(sudoku, x, y);
-            y +=3;
+            y += 3;
         }
         y = 0;
         x += 3;
@@ -273,16 +276,23 @@ bool second_load(int i, int j, int row, int collum, char character, unsigned int
     }
 }
 
+void first_load(int i, int j, int character, unsigned int sudoku[9][9])
+{
+    int new_char = (character - 48);
+    if (new_char == 0) {
+        new_char = 511;
+    }
+    sudoku[i][j] = converter_binary(new_char);
+}
+
 bool load(unsigned int sudoku[9][9])
 {
     int i = 0;
     int j = 0;
-    int character;
+    int character = getchar();
     int row = 0;
     int collum = 0;
-    int new_char;
     bool stop = false;
-    (character = getchar());
     if (character == '+') {
         collum++;
         while (!stop) {
@@ -290,8 +300,11 @@ bool load(unsigned int sudoku[9][9])
             if (!(second_load(i, j, row, collum, character, sudoku))) {
                 return false;
             }
-            if (!(row == 0 || row == 4 || row == 8 || row == 12) && (collum == 2 || collum == 4 || collum == 6 || collum == 10 || collum == 12 || collum == 14 ||
-                    collum == 18 || collum == 20 || collum == 22)) {j++;}
+            if (!(row == 0 || row == 4 || row == 8 || row == 12) &&
+                    (collum == 2 || collum == 4 || collum == 6 || collum == 10 || collum == 12 || collum == 14 ||
+                            collum == 18 || collum == 20 || collum == 22)) {
+                j++;
+            }
             collum++;
             if (collum == 26) {
                 collum = 0;
@@ -305,29 +318,22 @@ bool load(unsigned int sudoku[9][9])
                 stop = true;
             }
         }
-    }else {
-        new_char = (character - 48);
-        if (new_char == 0) {
-            new_char = 511;
-        }
-        sudoku[i][j] = converter_binary(new_char);
+    } else {
+        first_load(i, j, character, sudoku);
         j++;
         while ((character = getchar()) != '\n') {
-            new_char = (character - 48);
-            if (new_char == 0) {
-                new_char = 511;
-            }
-            sudoku[i][j] = converter_binary(new_char);
+            first_load(i, j, character, sudoku);
             j++;
             if (j == 9) {
                 j = 0;
                 i++;
             }
-            if (i > 9) { return false; }
+            if (i > 9) {
+                return false;
+            }
         }
     }
-    unsigned int next_sudoku[9][9];
-    if ((character = getchar()) == '\n'){printf("\n"); load(next_sudoku);}
+    (character = getchar());
     return true;
 }
 
