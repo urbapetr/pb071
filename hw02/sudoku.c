@@ -1,6 +1,4 @@
 #include "sudoku.h"
-#include <ctype.h>
-#include <string.h>
 
 /* ************************************************************** *
  *               Functions required by assignment                 *
@@ -233,6 +231,7 @@ bool solve(unsigned int sudoku[9][9])
 
 bool second_load(int i, int j, int row, int collum, char character, unsigned int sudoku[9][9])
 {
+    int new_char;
     if (row == 0 || row == 4 || row == 8 || row == 12) {
         switch (collum) {
         case 0:
@@ -261,7 +260,11 @@ bool second_load(int i, int j, int row, int collum, char character, unsigned int
     case 18:
     case 20:
     case 22:
-        sudoku[i][j] = converter_binary(character - 48);
+        new_char = (character - 48);
+        if (new_char == 0) {
+            new_char = 511;
+        }
+        sudoku[i][j] = converter_binary(new_char);
         return true;
     case 25:
         return (character == '\n');
@@ -274,30 +277,42 @@ bool load(unsigned int sudoku[9][9])
 {
     int i = 0;
     int j = 0;
-    int character = 0;
+    int character;
     int row = 0;
     int collum = 0;
-    int new_char = 0;
-    bool what_load = false;
-    while ((character = getchar()) != '\n') {
-        if (i == 0 && j == 0 && character == '+') {
-            what_load = true;
-        }
-        if (what_load) {
+    int new_char;
+    bool stop = false;
+    (character = getchar());
+    if (character == '+') {
+        collum++;
+        while (!stop) {
+            (character = getchar());
             if (!(second_load(i, j, row, collum, character, sudoku))) {
                 return false;
             }
+            if (!(row == 0 || row == 4 || row == 8 || row == 12) && (collum == 2 || collum == 4 || collum == 6 || collum == 10 || collum == 12 || collum == 14 ||
+                    collum == 18 || collum == 20 || collum == 22)) {j++;}
             collum++;
             if (collum == 26) {
                 collum = 0;
                 row++;
             }
-            j++;
             if (j == 9) {
                 j = 0;
                 i++;
             }
-        } else {
+            if (row == 13) {
+                stop = true;
+            }
+        }
+    }else {
+        new_char = (character - 48);
+        if (new_char == 0) {
+            new_char = 511;
+        }
+        sudoku[i][j] = converter_binary(new_char);
+        j++;
+        while ((character = getchar()) != '\n') {
             new_char = (character - 48);
             if (new_char == 0) {
                 new_char = 511;
@@ -308,11 +323,11 @@ bool load(unsigned int sudoku[9][9])
                 j = 0;
                 i++;
             }
-            if (i > 9) {
-                return false;
-            }
+            if (i > 9) { return false; }
         }
     }
+    unsigned int next_sudoku[9][9];
+    if ((character = getchar()) == '\n'){printf("\n"); load(next_sudoku);}
     return true;
 }
 
@@ -350,9 +365,9 @@ void print(unsigned int sudoku[9][9])
             if (is_number(sudoku[i][y])) {
                 printf(" %d", converter(sudoku[i][y]));
             } else if (is_unpredictable(sudoku[i][y])) {
-                printf(". ");
+                printf(" .");
             } else if (is_impossible(sudoku[i][y])) {
-                printf("! ");
+                printf(" !");
             }
 
             if (y % 3 == 2) {
@@ -364,7 +379,6 @@ void print(unsigned int sudoku[9][9])
             printf("%s", middle);
         }
     }
-    printf("\n");
     return;
 }
 
@@ -415,8 +429,10 @@ int converter(unsigned int number)
         return 7;
     case 128:
         return 8;
-    default:
+    case 256:
         return 9;
+    default:
+        return number;
     }
 }
 
