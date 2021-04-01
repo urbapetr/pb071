@@ -322,7 +322,6 @@ bool load(unsigned int sudoku[9][9])
             if (i > 9) { return false;}
         }
     }
-    if ((getchar()) != '\n'){return false;}
     return true;
 }
 
