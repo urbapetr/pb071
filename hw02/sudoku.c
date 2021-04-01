@@ -7,7 +7,6 @@ bool needs_solving(unsigned int sudoku[9][9]);
 bool is_valid(unsigned int sudoku[9][9]);
 bool check_number(int row, int collum, unsigned int sudoku[9][9]);
 int which_block(int x);
-unsigned int possible_number(int row, int collum, unsigned int sudoku[9][9]);
 bool is_number(unsigned int number);
 bool is_unpredictable(unsigned int number);
 bool is_impossible(unsigned int number);
@@ -18,6 +17,7 @@ unsigned int converter_binary(int number);
 bool eliminate_row(unsigned int sudoku[9][9], int row_index)
 {
     bool changed = false;
+    unsigned int prev;
     for (int i = 0; i < 9; i++)
     {
         if (is_number(sudoku[row_index][i]))
@@ -26,15 +26,15 @@ bool eliminate_row(unsigned int sudoku[9][9], int row_index)
         }
         if (is_impossible(sudoku[row_index][i]))
         {
-            printf("ROW: Something went wrong :( [%d][%d]\n", row_index, i);
             return 0;
         }
         for (int j = 0; j < 9; j++)
         {
             if (j == i) {continue;}
             if (!(is_number(sudoku[row_index][j]))) {continue;}
+            prev = sudoku[row_index][i];
             sudoku[row_index][i] = sudoku[row_index][i] ^ (sudoku[row_index][i] & sudoku[row_index][j]);
-            changed = true;
+            if (prev != sudoku[row_index][i]){ changed = true; }
         }
     }
     return changed;
@@ -43,20 +43,21 @@ bool eliminate_row(unsigned int sudoku[9][9], int row_index)
 bool eliminate_col(unsigned int sudoku[9][9], int col_index)
 {
     bool changed = false;
+    unsigned int prev;
     for (int i = 0; i < 9; i++)
     {
         if (is_number(sudoku[i][col_index])) {continue;}
         if (is_impossible(sudoku[i][col_index]))
         {
-            printf("[%d][%d] COL: Something went wrong :(\n", i, col_index);
             return 0;
         }
         for (int j = 0; j < 9; j++)
         {
             if (j == i) {continue;}
             if (!(is_number(sudoku[j][col_index]))) {continue;}
+            prev = sudoku[i][col_index];
             sudoku[i][col_index] = sudoku[i][col_index] ^ (sudoku[i][col_index] & sudoku[j][col_index]);
-            changed = true;
+            if (prev != sudoku[i][col_index]){ changed = true; }
         }
     }
     return changed;
@@ -65,6 +66,7 @@ bool eliminate_col(unsigned int sudoku[9][9], int col_index)
 bool eliminate_box(unsigned int sudoku[9][9], int row_index, int col_index)
 {
     bool changed = false;
+    unsigned int prev;
     int row_block = which_block(row_index);
     int col_block = which_block(col_index);
     int row_repeat = row_block + 2;
@@ -73,14 +75,16 @@ bool eliminate_box(unsigned int sudoku[9][9], int row_index, int col_index)
     {
         for (int y = col_block; y <= col_repeat; y++)
         {
-            if (is_impossible(sudoku[x][y])){printf("[%d][%d] COL: Something went wrong :(\n", x,y);return 0;}
+            if (is_impossible(sudoku[x][y])){return 0;}
             for (int i = row_block; i <= row_repeat; i++)
             {
                 for (int j = col_block; j <= col_repeat; j++)
                 {
                     if (x == i && y == j){continue;}
                     if (!(is_number(sudoku[i][j]))){continue;}
+                    prev = sudoku[x][y];
                     sudoku[x][y] = sudoku[x][y] ^ (sudoku[x][y] & sudoku[i][j]);
+                    if (prev != sudoku[x][y]){ changed = true;}
                 }
             }
         }
@@ -94,10 +98,10 @@ bool needs_solving(unsigned int sudoku[9][9])
     {
         for (int collum = 0; collum < 9; collum++)
         {
-            if (!(is_number(sudoku[row][collum]))){return 1;}
+            if (!(is_number(sudoku[row][collum]))){return true;}
         }
     }
-    return 0;
+    return false;
 }
 
 bool is_valid(unsigned int sudoku[9][9])
@@ -106,11 +110,11 @@ bool is_valid(unsigned int sudoku[9][9])
     {
         for (int collum = 0; collum < 9; collum++)
         {
-            if (sudoku[row][collum] == 0 && possible_number(row, collum, sudoku) == 0) {return 0;}
-            if (is_number(sudoku[row][collum]) && !(check_number(row, collum, sudoku))) {return 0;}
+            if (is_impossible(sudoku[row][collum])) {return false;}
+            if (is_number(sudoku[row][collum]) && !(check_number(row, collum, sudoku))) {return false;}
         }
     }
-    return 1;
+    return true;
 }
 
 bool check_number(int row, int collum, unsigned int sudoku[9][9])
@@ -158,50 +162,26 @@ int which_block(int x)
     }
 }
 
-unsigned int possible_number(int row, int collum, unsigned int sudoku[9][9])
+bool valid(unsigned  int sudoku[9][9])
 {
-    unsigned int possible_row = 511;
-    unsigned int possible_collum = 511;
-    for (int i = 0; i < 9; i++)
+    if (!(is_valid(sudoku)))
     {
-        if (i != collum){possible_row = possible_row ^ sudoku[row][i];}
-        if (i != row) {possible_collum = possible_collum ^ sudoku[i][collum];}
+        return false;
     }
-    unsigned int possible_block = 511;
-    int row_block = which_block(row);
-    int col_block = which_block(collum);
-    int repeat_row = row_block + 2;
-    int repeat_col = col_block + 2;
-    while (row_block <= repeat_row)
-    {
-        while (col_block <= repeat_col)
-        {
-            if (collum != col_block && row != row_block)
-            {
-                possible_block = possible_block ^ (possible_block & sudoku[row_block][col_block]);
-            }
-            col_block++;
-        }
-        col_block = repeat_col - 2;
-        row_block++;
-    }
-    int result = possible_block & possible_collum & possible_row;
-    return result;
+    return true;
 }
 
 bool solve(unsigned int sudoku[9][9])
 {
     bool changed = false;
     if (!(needs_solving(sudoku))) {return true;}
-    if (!(is_valid(sudoku)))
-    {
-        printf("SOLVE: Something went wrong :(\n");
-        return false;
-    }
+    if (!(valid(sudoku))){return false;}
     for (int i = 0; i < 9; i++)
     {
         if (eliminate_row(sudoku, i)){changed = true;}
+        if (!(valid(sudoku))){return false;}
         if (eliminate_col(sudoku, i)) {changed = true;};
+        if (!(valid(sudoku))){return false;}
     }
     int x = 0;
     int y = 0;
@@ -210,12 +190,14 @@ bool solve(unsigned int sudoku[9][9])
         while (y <= 6)
         {
             if (eliminate_box(sudoku, x, y)) {changed = true;}
+            if (!(valid(sudoku))){return false;}
             y +=3;
         }
         y = 0;
         x += 3;
     }
     bool solved = false;
+    if (!(valid(sudoku))){return false;}
     if (!(needs_solving(sudoku))) {return true;}
     if (!changed){return false;}
     solved = solve(sudoku);
@@ -258,6 +240,7 @@ bool second_load(int i, int j, int row, int collum, char character, unsigned int
     case 22:
         new_char = (character - 48);
         if (new_char == 0) {new_char = 511;}
+        if (!(converter_binary(new_char))){return false;}
         sudoku[i][j] = converter_binary(new_char);
         return true;
     case 25:
@@ -267,10 +250,12 @@ bool second_load(int i, int j, int row, int collum, char character, unsigned int
     }
 }
 
-void first_load(int i,int j, int character, unsigned int sudoku[9][9]){
+bool first_load(int i,int j, int character, unsigned int sudoku[9][9]){
     int new_char = (character - 48);
     if (new_char == 0) {new_char = 511;}
+    if (!(converter_binary(new_char))){return false;}
     sudoku[i][j] = converter_binary(new_char);
+    return true;
 }
 
 bool load(unsigned int sudoku[9][9])
@@ -281,13 +266,14 @@ bool load(unsigned int sudoku[9][9])
     int row = 0;
     int collum = 0;
     bool stop = false;
+    while (character == '\n'){character = getchar();}
     if (character == '+')
     {
         collum++;
         while (!stop)
         {
             (character = getchar());
-            if (!(second_load(i, j, row, collum, character, sudoku))) {return false;}
+            if (!(second_load(i, j, row, collum, character, sudoku))) {fprintf(stderr, "WRONG INPUT\n"); return false;}
             if (!(row == 0 || row == 4 || row == 8 || row == 12) &&
                 (collum == 2 || collum == 4 || collum == 6 || collum == 10 || collum == 12 || collum == 14 ||
                     collum == 18 || collum == 20 || collum == 22)) {j++;}
@@ -308,20 +294,21 @@ bool load(unsigned int sudoku[9][9])
             }
         }
     }else {
-        first_load(i,j,character,sudoku);
+        if (!(first_load(i,j,character,sudoku))) {fprintf(stderr, "WRONG INPUT\n"); return false;}
         j++;
         while ((character = getchar()) != '\n')
         {
-            first_load(i,j,character,sudoku);
+            if (i == 9) {fprintf(stderr, "WRONG INPUT\n"); return false;}
+            if (!(first_load(i,j,character,sudoku))) {fprintf(stderr, "WRONG INPUT\n"); return false;}
             j++;
             if (j == 9)
             {
                 j = 0;
                 i++;
             }
-            if (i > 9) { return false;}
         }
     }
+    if (i != 9 && j != 0){fprintf(stderr, "WRONG INPUT\n"); return false;}
     return true;
 }
 
@@ -383,8 +370,6 @@ unsigned int converter_binary(int number)
 {
     switch (number)
     {
-    case 0:
-        return 0;
     case 1:
         return 1;
     case 2:
@@ -403,6 +388,7 @@ unsigned int converter_binary(int number)
         return 128;
     case 9:
         return 256;
+    case -2:
     case 511:
         return 511;
     default: return false;
