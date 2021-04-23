@@ -2,7 +2,6 @@
 #include <string.h>
 
 #ifdef CONFIG_ENABLE_DEBUG
-#include <stdio.h>
 #define DEBUG(STATEMENT)    \
     do {                    \
         STATEMENT;          \
@@ -26,16 +25,22 @@ bool copy_queue(priority_queue *dest, const priority_queue *source)
     clear_queue(dest);
     dest->size = source->size;
 
-    priority_queue_item *new_top = malloc(sizeof(priority_queue_item));
-    if (!new_top) return false;
-    memcpy(new_top, source->top, sizeof(priority_queue_item));
+    priority_queue_item *new_top = malloc(sizeof(*source->top)+1);
+    if (new_top == NULL)
+    {
+        return false;
+    }
+    memcpy(new_top, source->top, sizeof(*source->top));
     dest->top = new_top;
     dest->top->next = NULL;
     free(new_top);
 
-    priority_queue_item *new_bot = malloc(sizeof(priority_queue_item));
-    if (!new_bot) return false;
-    memcpy(new_bot, source->bottom, sizeof(priority_queue_item));
+    priority_queue_item *new_bot = malloc(sizeof(*source->bottom)+1);
+    if (new_bot == NULL)
+    {
+        return false;
+    }
+    memcpy(new_bot, source->bottom, sizeof(*source->bottom));
     dest->bottom = new_bot;
 
     priority_queue_item *add_item = source->top->next;
@@ -78,8 +83,11 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
     bool find_spot = true;
     priority_queue_item* where_copy = queue->bottom;
     priority_queue_item* by_item = queue->top;
-    priority_queue_item* new_item = malloc(sizeof(priority_queue_item));
-    if (!new_item) {free(new_item); return push_error;}
+    priority_queue_item* new_item = malloc(sizeof(priority_queue_item)+1);
+    if (new_item == NULL)
+    {
+        return push_error;
+    }
     new_item->process = process;
 
     while (by_item != NULL)
@@ -153,8 +161,14 @@ bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
     priority_queue_item *top_item = get_top_item(queue, cpu_mask);
     if (top_item == NULL)
         return false;
-    if (out != NULL)
-        out = &top_item->process;
+    if (out != NULL) {
+        process_type *out_process = malloc(sizeof(top_item->process)+1);
+        if (out_process != NULL) {
+            memcpy(out_process, &top_item->process, sizeof(top_item->process));
+            out = out_process;
+        }
+        free(out_process);
+    }
     if (top_item->prev != NULL && top_item->next != NULL)
     {
         top_item->next->prev = top_item->prev;
