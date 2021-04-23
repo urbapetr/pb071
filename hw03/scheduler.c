@@ -25,20 +25,26 @@ bool copy_queue(priority_queue *dest, const priority_queue *source)
 {
     clear_queue(dest);
     dest->size = source->size;
+
     priority_queue_item *new_top = malloc(sizeof(priority_queue_item));
-    priority_queue_item *new_bot = malloc(sizeof(priority_queue_item));
-    if (!new_top | !new_bot) return false;
+    if (!new_top) return false;
     memcpy(new_top, source->top, sizeof(priority_queue_item));
-    memcpy(new_bot, source->bottom, sizeof(priority_queue_item));
     dest->top = new_top;
     dest->top->next = NULL;
+    free(new_top);
+
+    priority_queue_item *new_bot = malloc(sizeof(priority_queue_item));
+    if (!new_bot) return false;
+    memcpy(new_bot, source->bottom, sizeof(priority_queue_item));
     dest->bottom = new_bot;
+
     priority_queue_item *add_item = source->top->next;
     while (add_item != NULL)
     {
         push_to_queue(dest, add_item->process);
         add_item = add_item->next;
     }
+    free(new_bot);
     return true;
 }
 
@@ -73,7 +79,7 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
     priority_queue_item* where_copy = queue->bottom;
     priority_queue_item* by_item = queue->top;
     priority_queue_item* new_item = malloc(sizeof(priority_queue_item));
-    if (!new_item) return push_error;
+    if (!new_item) {free(new_item); return push_error;}
     new_item->process = process;
 
     while (by_item != NULL)
@@ -84,8 +90,10 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
                     process.niceness == by_item->process.niceness &&
                     process.cpu_mask == by_item->process.cpu_mask)
             {
+                free(new_item);
                 return push_duplicate;
             }
+            free(new_item);
             return push_inconsistent;
         }
         if ((find_spot && priority_counter(process) < priority_counter(by_item->process))
@@ -114,6 +122,7 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
         }
         where_copy->prev = new_item;
     }
+    free(new_item);
     return push_success;
 }
 
