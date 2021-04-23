@@ -83,12 +83,6 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
     bool find_spot = true;
     priority_queue_item* where_copy = queue->bottom;
     priority_queue_item* by_item = queue->top;
-    priority_queue_item* new_item = malloc(sizeof(priority_queue_item)+1);
-    if (new_item == NULL)
-    {
-        return push_error;
-    }
-    new_item->process = process;
 
     while (by_item != NULL)
     {
@@ -98,10 +92,8 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
                     process.niceness == by_item->process.niceness &&
                     process.cpu_mask == by_item->process.cpu_mask)
             {
-                free(new_item);
                 return push_duplicate;
             }
-            free(new_item);
             return push_inconsistent;
         }
         if ((find_spot && priority_counter(process) < priority_counter(by_item->process))
@@ -113,6 +105,12 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
         }
         by_item = by_item->next;
     }
+    priority_queue_item* new_item = malloc(sizeof(*where_copy) + sizeof(*where_copy->next) + sizeof(process) + 1);
+    if (new_item == NULL)
+    {
+        return push_error;
+    }
+    new_item->process = process;
     if (find_spot)
     {
         new_item->next = NULL;
