@@ -2,6 +2,7 @@
 #include <string.h>
 
 #ifdef CONFIG_ENABLE_DEBUG
+#include <stdio.h>
 #define DEBUG(STATEMENT)    \
     do {                    \
         STATEMENT;          \
@@ -110,12 +111,24 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
     {
         return push_error;
     }
+    void *new_space = realloc(queue, sizeof(*new_item));
+    if (new_space == NULL)
+    {
+        free(queue);
+        return push_error;
+    }
     new_item->process = process;
     if (find_spot)
     {
         new_item->next = NULL;
-        new_item->prev = queue->bottom->next;
-        queue->bottom->next = new_item;
+        new_item->prev = queue->bottom;
+        if (queue->top == NULL)
+        {
+            queue->top = new_item;
+        }
+        if (queue->bottom != NULL) {
+            queue->bottom->next = new_item;
+        }
         queue->bottom = new_item;
     }
     else {
@@ -129,6 +142,7 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
         where_copy->prev = new_item;
     }
     free(new_item);
+    queue->size = queue->size + 1;
     return push_success;
 }
 
@@ -182,6 +196,7 @@ bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
         top_item->next->prev = NULL;
         queue->top = top_item->next;
     }
+    queue->size = queue->size - 1;
     return true;
 }
 
