@@ -22,40 +22,39 @@ priority_queue create_queue(void)
 bool copy_queue(priority_queue *dest, const priority_queue *source) {
     clear_queue(dest);
 
-    priority_queue_item *new_top = malloc(sizeof(*source->top));
-    if (new_top == NULL) {
-        return false;
-    }
-    process_type *top_process = malloc(sizeof(process_type));
-    memcpy(top_process, &source->top->process, sizeof(process_type));
-    new_top->process = *top_process;
-    dest->top = new_top;
-    dest->size = dest->size + 1;
-    dest->top->next = NULL;
-    free(top_process);
-
-    priority_queue_item *add_item = source->top->next;
+    priority_queue_item *add_item = source->top;
     priority_queue_item *pItem = dest->top;
     while (add_item != NULL) {
-        priority_queue_item *new_item = malloc(sizeof(*add_item));
+        priority_queue_item *new_item = malloc(sizeof(priority_queue_item));
         if (new_item == NULL) {
             return false;
         }
-        process_type *itemProcess = malloc(sizeof(add_item->process));
+        process_type *itemProcess = malloc(sizeof(process_type));
         if (itemProcess == NULL) {
             return false;
         }
-        memcpy(itemProcess, &add_item->process, sizeof(add_item->process));
+        memcpy(itemProcess, &add_item->process, sizeof(process_type));
         new_item->process = *itemProcess;
+        if (pItem == NULL) {
+            new_item->prev = NULL;
+            new_item->next = NULL;
+            dest->top = new_item;
+            pItem = dest->top;
+            dest->size = dest->size + 1;
+            dest->bottom = pItem;
+            add_item = add_item->next;
+            free(itemProcess);
+            continue;
+        }
         pItem->next = new_item;
         new_item->prev = pItem;
         new_item->next = NULL;
         pItem = new_item;
         add_item = add_item->next;
         dest->size = dest->size + 1;
+        dest->bottom = pItem;
         free(itemProcess);
     }
-    dest->bottom = pItem;
     return true;
 }
 
@@ -173,12 +172,12 @@ bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
     if (top_item == NULL)
         return false;
     if (out != NULL) {
-        process_type *out_process = malloc(sizeof(top_item->process) + 1);
+        process_type *out_process = malloc(sizeof(top_item->process));
         if (out_process != NULL) {
             memcpy(out_process, &top_item->process, sizeof(top_item->process));
             out = out_process;
+            free(out_process);
         }
-        free(out_process);
     }
     if (top_item->prev != NULL && top_item->next != NULL)
     {
@@ -202,6 +201,7 @@ bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
     top_item->next = NULL;
     top_item->prev = NULL;
     queue->size = queue->size - 1;
+    free(top_item);
     return true;
 }
 
