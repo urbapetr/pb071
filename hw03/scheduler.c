@@ -202,6 +202,7 @@ bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
 
 unsigned int run_top(priority_queue *queue, uint16_t cpu_mask, unsigned int run_time)
 {
+    if (queue == NULL) {return 0;}
     priority_queue_item *top_item = get_top_item(queue, cpu_mask);
     if (top_item == NULL) {return 0;}
     unsigned int cb_ret = (top_item->process.callback(run_time, top_item->process.context));
