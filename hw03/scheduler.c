@@ -205,17 +205,21 @@ unsigned int run_top(priority_queue *queue, uint16_t cpu_mask, unsigned int run_
     if (queue == NULL) {return 0;}
     priority_queue_item *top_item = get_top_item(queue, cpu_mask);
     if (top_item == NULL) {return 0;}
-    unsigned int cb_ret = (top_item->process.callback(run_time, top_item->process.context));
+    unsigned int cb_ret = top_item->process.callback(run_time, top_item->process.context);
+    process_type *outer = malloc(sizeof(process_type));
+    if (outer == NULL) {return 0;}
+    pop_top(queue, cpu_mask, outer);
     if (cb_ret == 0)
     {
-        pop_top(queue, cpu_mask, NULL);
+        free(outer);
         return 0;
     }
     unsigned int time = 0;
-    if (top_item->process.remaining_time - run_time > 0)
-        time = top_item->process.remaining_time - run_time;
-    top_item->process.remaining_time = time + cb_ret;
-    return top_item->process.remaining_time;
+    if ((outer->remaining_time - run_time) > 0)
+        time = outer->remaining_time - run_time;
+    outer->remaining_time = time + cb_ret;
+    push_to_queue(queue, *outer);
+    return outer->remaining_time;
 }
 
 bool renice(
