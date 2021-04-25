@@ -172,12 +172,7 @@ bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
     if (top_item == NULL)
         return false;
     if (out != NULL) {
-        process_type *out_process = malloc(sizeof(top_item->process));
-        if (out_process != NULL) {
-            memcpy(out_process, &top_item->process, sizeof(top_item->process));
-            out = out_process;
-            free(out_process);
-        }
+        memcpy(out, &top_item->process, sizeof(process_type));
     }
     if (top_item->prev != NULL && top_item->next != NULL)
     {
