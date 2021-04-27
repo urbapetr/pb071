@@ -1,11 +1,12 @@
 #include "scheduler.h"
+#include "assert.h"
 #include <string.h>
 
 #ifdef CONFIG_ENABLE_DEBUG
 #include <stdio.h>
-#define DEBUG(STATEMENT)    \
-    do {                    \
-        STATEMENT;          \
+#define DEBUG(STATEMENT) \
+    do {                 \
+        STATEMENT;       \
     } while (0)
 #else
 #define DEBUG(STATEMENT)
@@ -15,71 +16,62 @@
 
 priority_queue create_queue(void)
 {
-    priority_queue new_queue = {.top = NULL, .bottom = NULL, .size = 0};
+    priority_queue new_queue = { .top = NULL, .bottom = NULL, .size = 0 };
     return new_queue;
 }
 
 bool copy_queue(priority_queue *dest, const priority_queue *source)
 {
-    priority_queue *interDest = malloc(sizeof(struct priority_queue));
-    if (interDest == NULL)
-    {
-        return false;
-    }
+    assert(dest != NULL);
+    assert(source != NULL);
+    priority_queue_item *topItem = NULL;
+    priority_queue_item *botItem = NULL;
+    size_t newSize = 0;
 
     priority_queue_item *add_item = source->top;
     priority_queue_item *pItem = NULL;
-    clear_queue(interDest);
     while (add_item != NULL) {
         priority_queue_item *new_item = malloc(sizeof(priority_queue_item));
         if (new_item == NULL) {
-            free(interDest);
             return false;
         }
         process_type *itemProcess = malloc(sizeof(process_type));
         if (itemProcess == NULL) {
-            free(interDest);
+            free(new_item);
             return false;
         }
         memcpy(itemProcess, &add_item->process, sizeof(process_type));
         new_item->process = *itemProcess;
-        if (pItem == NULL) {
-            new_item->prev = NULL;
-            new_item->next = NULL;
-            interDest->top = new_item;
-            pItem = interDest->top;
-            interDest->size = interDest->size + 1;
-            interDest->bottom = pItem;
-            add_item = add_item->next;
-            free(itemProcess);
-            continue;
+        if (topItem == NULL) {
+            pItem = new_item;
+            topItem = new_item;
+        } else {
+            pItem->next = new_item;
         }
-        pItem->next = new_item;
         new_item->prev = pItem;
         new_item->next = NULL;
         pItem = new_item;
         add_item = add_item->next;
-        interDest->size = interDest->size + 1;
-        interDest->bottom = pItem;
+        newSize = newSize + 1;
+        botItem = pItem;
         free(itemProcess);
     }
-    dest->top = interDest->top;
-    dest->bottom = interDest->bottom;
-    dest->size = interDest->size;
-    free(interDest);
+    clear_queue(dest);
+    dest->top = topItem;
+    dest->bottom = botItem;
+    dest->size = newSize;
     return true;
 }
 
 void clear_queue(priority_queue *queue)
 {
+    assert(queue != NULL);
     priority_queue_item *current_item = queue->top;
     priority_queue_item *item = NULL;
-    while (current_item != NULL)
-    {
+    while (current_item != NULL) {
         item = current_item;
         current_item = current_item->next;
-        if (item->next != NULL)
-        {
+        if (item->next != NULL) {
             item->next->prev = NULL;
         }
         free(item);
@@ -99,8 +91,7 @@ unsigned int cpu_mask_counter(process_type process)
 {
     unsigned int one_counter = 0;
     uint16_t mask_cpy = process.cpu_mask;
-    for (int i = 0;  i < 16; i++)
-    {
+    for (int i = 0; i < 16; i++) {
         one_counter = one_counter + (mask_cpy & 1);
         mask_cpy = mask_cpy >> 1;
     }
@@ -109,52 +100,43 @@ unsigned int cpu_mask_counter(process_type process)
 
 enum push_result push_to_queue(priority_queue *queue, process_type process)
 {
+    assert(queue != NULL);
     bool find_spot = true;
-    priority_queue_item* where_copy = queue->bottom;
-    priority_queue_item* by_item = queue->top;
+    priority_queue_item *where_copy = queue->bottom;
+    priority_queue_item *by_item = queue->top;
 
-    while (by_item != NULL)
-    {
-        if (process.callback == by_item->process.callback && process.context == by_item->process.context)
-        {
+    while (by_item != NULL) {
+        if (process.callback == by_item->process.callback && process.context == by_item->process.context) {
             if (process.remaining_time == by_item->process.remaining_time &&
-                process.niceness == by_item->process.niceness &&
-                process.cpu_mask == by_item->process.cpu_mask)
-            {
+                    process.niceness == by_item->process.niceness &&
+                    process.cpu_mask == by_item->process.cpu_mask) {
                 return push_duplicate;
             }
             return push_inconsistent;
         }
-        if ((priority_counter(process) < priority_counter(by_item->process))
-            || ((priority_counter(process) == priority_counter(by_item->process))
-                && cpu_mask_counter(process) < cpu_mask_counter(by_item->process)))
-        {
+        if ((priority_counter(process) < priority_counter(by_item->process)) || ((priority_counter(process) == priority_counter(by_item->process)) && cpu_mask_counter(process) < cpu_mask_counter(by_item->process))) {
             where_copy = by_item;
             find_spot = false;
             break;
         }
         by_item = by_item->next;
     }
-    priority_queue_item* new_item = malloc(sizeof(priority_queue_item));
-    if (new_item == NULL)
-    {
+    priority_queue_item *new_item = malloc(sizeof(priority_queue_item));
+    if (new_item == NULL) {
         return push_error;
     }
     new_item->process = process;
-    if (find_spot)
-    {
+    if (find_spot) {
         new_item->next = NULL;
         new_item->prev = queue->bottom;
-        if (queue->top == NULL)
-        {
+        if (queue->top == NULL) {
             queue->top = new_item;
         }
         if (queue->bottom != NULL) {
             queue->bottom->next = new_item;
         }
         queue->bottom = new_item;
-    }
-    else {
+    } else {
         new_item->next = where_copy;
         new_item->prev = where_copy->prev;
         if (new_item->prev == NULL) {
@@ -168,13 +150,11 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
     return push_success;
 }
 
-priority_queue_item* get_top_item(const priority_queue *queue, uint16_t cpu_mask)
+priority_queue_item *get_top_item(const priority_queue *queue, uint16_t cpu_mask)
 {
     priority_queue_item *current_item = queue->top;
-    while (current_item != NULL)
-    {
-        if (current_item->process.cpu_mask & cpu_mask)
-        {
+    while (current_item != NULL) {
+        if (current_item->process.cpu_mask & cpu_mask) {
             return current_item;
         }
         current_item = current_item->next;
@@ -182,8 +162,9 @@ priority_queue_item* get_top_item(const priority_queue *queue, uint16_t cpu_mask
     return NULL;
 }
 
-process_type* get_top(const priority_queue *queue, uint16_t cpu_mask)
+process_type *get_top(const priority_queue *queue, uint16_t cpu_mask)
 {
+    assert(queue != NULL);
     priority_queue_item *top_item = get_top_item(queue, cpu_mask);
     if (top_item == NULL)
         return NULL;
@@ -192,6 +173,7 @@ process_type* get_top(const priority_queue *queue, uint16_t cpu_mask)
 
 bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
 {
+    assert(queue != NULL);
     priority_queue_item *top_item = get_top_item(queue, cpu_mask);
     if (top_item == NULL)
         return false;
@@ -199,18 +181,14 @@ bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
         memcpy(out, &top_item->process, sizeof(process_type));
     }
 
-    if (top_item->prev != NULL)
-    {
+    if (top_item->prev != NULL) {
         top_item->prev->next = top_item->next;
-    } else
-    {
+    } else {
         queue->top = top_item->next;
     }
-    if (top_item->next != NULL)
-    {
+    if (top_item->next != NULL) {
         top_item->next->prev = top_item->prev;
-    } else
-    {
+    } else {
         queue->bottom = top_item->prev;
     }
     top_item->next = NULL;
@@ -222,20 +200,25 @@ bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
 
 unsigned int run_top(priority_queue *queue, uint16_t cpu_mask, unsigned int run_time)
 {
-    if (queue == NULL) {return 0;}
+    assert(queue != NULL);
     priority_queue_item *top_item = get_top_item(queue, cpu_mask);
-    if (top_item == NULL) {return 0;}
+    if (top_item == NULL) {
+        return 0;
+    }
+
     unsigned int cb_ret = top_item->process.callback(run_time, top_item->process.context);
     process_type *outer = malloc(sizeof(process_type));
-    if (outer == NULL) {return 0;}
+    if (outer == NULL) {
+        return 0;
+    }
+
     pop_top(queue, cpu_mask, outer);
-    if (cb_ret == 0)
-    {
+    if (cb_ret == 0) {
         free(outer);
         return 0;
     }
     unsigned int time = 0;
-    if (outer->remaining_time < run_time)
+    if (outer->remaining_time > run_time)
         time = outer->remaining_time - run_time;
     outer->remaining_time = time + cb_ret;
     push_to_queue(queue, *outer);
@@ -248,26 +231,23 @@ bool renice(
         priority_queue *queue,
         cb_type callback,
         void *context,
-        unsigned int niceness
-)
+        unsigned int niceness)
 {
+    assert(queue != NULL);
     priority_queue_item *current_item = queue->top;
     while (current_item != NULL) {
         if (current_item->process.context == context && current_item->process.callback == callback) {
-            if (current_item->prev != NULL)
-            {
+            if (current_item->prev != NULL) {
                 current_item->prev->next = current_item->next;
-            } else
-            {
+            } else {
                 queue->top = current_item->next;
             }
-            if (current_item->next != NULL)
-            {
+            if (current_item->next != NULL) {
                 current_item->next->prev = current_item->prev;
-            } else
-            {
+            } else {
                 queue->bottom = current_item->prev;
             }
+            queue->size = queue->size - 1;
             current_item->process.niceness = niceness;
             current_item->prev = NULL;
             current_item->next = NULL;
