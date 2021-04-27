@@ -35,28 +35,25 @@ bool copy_queue(priority_queue *dest, const priority_queue *source)
         if (new_item == NULL) {
             return false;
         }
-        process_type *itemProcess = malloc(sizeof(process_type));
-        if (itemProcess == NULL) {
-            free(new_item);
-            return false;
-        }
-        memcpy(itemProcess, &add_item->process, sizeof(process_type));
-        new_item->process = *itemProcess;
+        new_item->process = add_item->process;
         if (topItem == NULL) {
-            pItem = new_item;
             topItem = new_item;
-        } else {
-            pItem->next = new_item;
+            new_item->prev = NULL;
+            new_item->next = NULL;
+            pItem = new_item;
+            add_item = add_item->next;
+            newSize = newSize + 1;
+            botItem = pItem;
+            continue;
         }
         new_item->prev = pItem;
         new_item->next = NULL;
+        new_item->prev->next = new_item;
         pItem = new_item;
         add_item = add_item->next;
         newSize = newSize + 1;
         botItem = pItem;
-        free(itemProcess);
     }
-    clear_queue(dest);
     dest->top = topItem;
     dest->bottom = botItem;
     dest->size = newSize;
