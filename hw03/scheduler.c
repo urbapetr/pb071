@@ -28,7 +28,8 @@ bool copy_queue(priority_queue *dest, const priority_queue *source)
     }
 
     priority_queue_item *add_item = source->top;
-    priority_queue_item *pItem = interDest->top;
+    priority_queue_item *pItem = NULL;
+    clear_queue(interDest);
     while (add_item != NULL) {
         priority_queue_item *new_item = malloc(sizeof(priority_queue_item));
         if (new_item == NULL) {
@@ -62,7 +63,6 @@ bool copy_queue(priority_queue *dest, const priority_queue *source)
         interDest->bottom = pItem;
         free(itemProcess);
     }
-    clear_queue(dest);
     dest->top = interDest->top;
     dest->bottom = interDest->bottom;
     dest->size = interDest->size;
@@ -72,6 +72,18 @@ bool copy_queue(priority_queue *dest, const priority_queue *source)
 
 void clear_queue(priority_queue *queue)
 {
+    priority_queue_item *current_item = queue->top;
+    priority_queue_item *item = NULL;
+    while (current_item != NULL)
+    {
+        item = current_item;
+        current_item = current_item->next;
+        if (item->next != NULL)
+        {
+            item->next->prev = NULL;
+        }
+        free(item);
+    }
     queue->top = NULL;
     queue->bottom = NULL;
     queue->size = 0;
@@ -186,24 +198,20 @@ bool pop_top(priority_queue *queue, uint16_t cpu_mask, process_type *out)
     if (out != NULL) {
         memcpy(out, &top_item->process, sizeof(process_type));
     }
-    if (top_item->prev != NULL && top_item->next != NULL)
+
+    if (top_item->prev != NULL)
     {
-        top_item->next->prev = top_item->prev;
         top_item->prev->next = top_item->next;
-    }
-    else if (top_item->next == NULL && top_item->prev != NULL)
+    } else
     {
-        top_item->prev->next = NULL;
-        queue->bottom = top_item->prev;
-    }
-    else if (top_item->prev == NULL && top_item->next != NULL)
-    {
-        top_item->next->prev = NULL;
         queue->top = top_item->next;
     }
-    else {
-        queue->top = NULL;
-        queue->bottom = NULL;
+    if (top_item->next != NULL)
+    {
+        top_item->next->prev = top_item->prev;
+    } else
+    {
+        queue->bottom = top_item->prev;
     }
     top_item->next = NULL;
     top_item->prev = NULL;
@@ -227,7 +235,7 @@ unsigned int run_top(priority_queue *queue, uint16_t cpu_mask, unsigned int run_
         return 0;
     }
     unsigned int time = 0;
-    if ((outer->remaining_time - run_time) > 0)
+    if (outer->remaining_time < run_time)
         time = outer->remaining_time - run_time;
     outer->remaining_time = time + cb_ret;
     push_to_queue(queue, *outer);
@@ -264,6 +272,7 @@ bool renice(
             current_item->prev = NULL;
             current_item->next = NULL;
             push_to_queue(queue, current_item->process);
+            free(current_item);
             return true;
         }
         current_item = current_item->next;
