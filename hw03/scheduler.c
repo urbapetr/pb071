@@ -112,10 +112,9 @@ enum push_result push_to_queue(priority_queue *queue, process_type process)
             }
             return push_inconsistent;
         }
-        if ((priority_counter(process) < priority_counter(by_item->process)) || ((priority_counter(process) == priority_counter(by_item->process)) && cpu_mask_counter(process) < cpu_mask_counter(by_item->process))) {
+        if (find_spot && ((priority_counter(process) < priority_counter(by_item->process)) || ((priority_counter(process) == priority_counter(by_item->process)) && cpu_mask_counter(process) < cpu_mask_counter(by_item->process)))) {
             where_copy = by_item;
             find_spot = false;
-            break;
         }
         by_item = by_item->next;
     }
