@@ -98,6 +98,7 @@ unsigned int cpu_mask_counter(process_type process)
 enum push_result push_to_queue(priority_queue *queue, process_type process)
 {
     assert(queue != NULL);
+    assert(process.niceness >= 10 && process.niceness < 50);
     bool find_spot = true;
     priority_queue_item *where_copy = queue->bottom;
     priority_queue_item *by_item = queue->top;
@@ -231,6 +232,7 @@ bool renice(
         unsigned int niceness)
 {
     assert(queue != NULL);
+    assert(niceness >= 10 && niceness < 50);
     priority_queue_item *current_item = queue->top;
     while (current_item != NULL) {
         if (current_item->process.context == context && current_item->process.callback == callback) {
