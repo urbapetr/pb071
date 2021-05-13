@@ -7,7 +7,7 @@ static void help_command(const char *program)
     const char *help =
             "Usage: %s OPTIONS\n"
             "\n"
-            "This program loads a sudoku and takes following options:\n"
+            "This proram loads .ini files into one file and takes following options:\n"
             "\n"
             "\t-h, --help\t\t Show OPTIONS of this program (nothing else)\n"
             "\n"
