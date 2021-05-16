@@ -4,6 +4,10 @@
 
 int main(int argc, char **argv)
 {
+    if (argc <= 3) {
+        help_command(argv[0]);
+        return EXIT_FAILURE;
+    }
     int d = 10;
     bool guard = false;
     bool cycle = false;
@@ -39,12 +43,14 @@ int main(int argc, char **argv)
         }
         else {
             help_command(argv[0]);
+            fprintf(stdout, "Your command is not allowed");
             return EXIT_FAILURE;
         }
     }
 
     if (((strstr(".ini", argv[argc-2])) == NULL) &&
         (strstr(".ini", argv[argc-1])) == NULL) {
+        fprintf(stderr, "Not two .ini files");
         return EXIT_FAILURE;
     }
     base_file = fopen(argv[argc-2], "r");
@@ -53,6 +59,7 @@ int main(int argc, char **argv)
     if (readline(base_file, result_file, cycle, guard, d, argv[argc-2]) == EXIT_FAILURE) {
         fclose(base_file);
         fclose(result_file);
+        fprintf(stderr, "Something bad in files");
         return EXIT_FAILURE;
     }
 

@@ -2,7 +2,7 @@
 #include "ini_parser.h"
 
 
-static void help_command(const char *program)
+void help_command(const char *program)
 {
     const char *help =
             "Usage: %s OPTIONS\n"
