@@ -2,28 +2,6 @@
 #include "ini_parser.h"
 
 
-void help_command(const char *program)
-{
-    const char *help =
-            "Usage: %s OPTIONS\n"
-            "\n"
-            "This proram loads .ini files into one file and takes following options:\n"
-            "\n"
-            "\t-h, --help\t\t Show OPTIONS of this program (nothing else)\n"
-            "\n"
-            "\t-d N, --max-depth N\tMaximum depth, where N must be number\n"
-            "\t\t\t\t-> 0 = not allowed\n"
-            "\t\t\t\t-> minus value -> unlimited\n"
-            "\t\t\t\t-> if N is not declared, then N = 10\n"
-            "\n"
-            "\t-g, --include-guard\tEvery file can be included only for first used time\n"
-            "\n"
-            "\t-r, --report-cycles\tDetecting cycling program\n"
-            "\n";
-
-    printf(help, program);
-}
-
 int readline(FILE *base_file, FILE *result_file, bool cycle, bool guard, int depth, char *first_file) {
     if (depth == 0) {
         return EXIT_SUCCESS;

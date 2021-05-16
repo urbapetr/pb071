@@ -4,8 +4,24 @@
 
 int main(int argc, char **argv)
 {
+    const char *help =
+            "Help table for this program:\n"
+            "\n"
+            "This program loads .ini files into one file and takes following options:\n"
+            "\n"
+            "\t-h, --help\t\t Show OPTIONS of this program (nothing else)\n"
+            "\n"
+            "\t-d N, --max-depth N\tMaximum depth, where N must be number\n"
+            "\t\t\t\t-> 0 = not allowed\n"
+            "\t\t\t\t-> minus value -> unlimited\n"
+            "\t\t\t\t-> if N is not declared, then N = 10\n"
+            "\n"
+            "\t-g, --include-guard\tEvery file can be included only for first used time\n"
+            "\n"
+            "\t-r, --report-cycles\tDetecting cycling program\n"
+            "\n";
     if (argc <= 3) {
-        help_command(argv[0]);
+        fprintf(stderr,"%s", help);
         return EXIT_FAILURE;
     }
     int d = 10;
@@ -18,7 +34,7 @@ int main(int argc, char **argv)
     {
         if ((strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "--help") == 0))
         {
-            help_command(argv[0]);
+            fprintf(stdout,"%s", help);
             return EXIT_SUCCESS;
         }
         else if ((strcmp(argv[i], "-d") == 0) || (strcmp(argv[i], "--max-depth") == 0))
@@ -42,13 +58,12 @@ int main(int argc, char **argv)
             i++;
         }
         else {
-            help_command(argv[0]);
-            fprintf(stdout, "Your command is not allowed");
+            fprintf(stderr,"%s", help);
             return EXIT_FAILURE;
         }
     }
 
-    if (((strstr(".ini", argv[argc-2])) == NULL) &&
+    if (((strstr(".ini", argv[argc-2])) == NULL) ||
         (strstr(".ini", argv[argc-1])) == NULL) {
         fprintf(stderr, "Not two .ini files");
         return EXIT_FAILURE;

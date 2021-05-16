@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include "view.h"
 
-void help_command(const char *program);
-
 int readline(FILE *base_file, FILE *result_file, bool cycle, bool guard, int depth, char *first_file);
 
 
